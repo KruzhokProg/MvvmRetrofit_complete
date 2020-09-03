@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.Filter;
+import android.widget.Filterable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -25,13 +27,14 @@ import java.util.List;
 import static com.example.mvvmretrofit.util.Constants.IMAGE_CONF;
 import static com.example.mvvmretrofit.util.Constants.IMAGE_PATH;
 
-public class ProjectsNewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ProjectsNewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
 
     public static final int PROJECTS_NEWS_TYPE = 1;
     public static final int LOADING_TYPE = 2;
     public static final int EXHAUSTED_TYPE = 3;
 
     private List<ProjectsNews> mProjectsNewsList;
+    private List<ProjectsNews> mProjectsNewsFilteredList;
     private OnProjectsNewsListener mOnProjectsNewsListener;
     private Context mContext;
 
@@ -72,14 +75,18 @@ public class ProjectsNewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         int itemViewType = getItemViewType(position);
         if(itemViewType == PROJECTS_NEWS_TYPE){
             ProjectsNewsViewHolder h = ((ProjectsNewsViewHolder)holder);
-            h.title.setText(mProjectsNewsList.get(position).getTitle());
-            h.anounce.setText(mProjectsNewsList.get(position).getAnounce());
-            h.publishedDate.setText(mProjectsNewsList.get(position).getPublished_at());
+//            h.title.setText(mProjectsNewsList.get(position).getTitle());
+//            h.anounce.setText(mProjectsNewsList.get(position).getAnounce());
+//            h.publishedDate.setText(mProjectsNewsList.get(position).getPublished_at());
+            h.title.setText(mProjectsNewsFilteredList.get(position).getTitle());
+            h.anounce.setText(mProjectsNewsFilteredList.get(position).getAnounce());
+            h.publishedDate.setText(mProjectsNewsFilteredList.get(position).getPublished_at());
 
             h.img.setAnimation(AnimationUtils.loadAnimation(mContext, R.anim.fade_transition_animation));
             h.cardView.setAnimation(AnimationUtils.loadAnimation(mContext, R.anim.fade_scale_animation));
 
-            Uri imageUri = Uri.parse(IMAGE_PATH + mProjectsNewsList.get(position).getId() + IMAGE_CONF);
+//            Uri imageUri = Uri.parse(IMAGE_PATH + mProjectsNewsList.get(position).getId() + IMAGE_CONF);
+            Uri imageUri = Uri.parse(IMAGE_PATH + mProjectsNewsFilteredList.get(position).getId() + IMAGE_CONF);
 
             Glide.with(holder.itemView.getContext())
                     .load(imageUri)
@@ -150,14 +157,16 @@ public class ProjectsNewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemCount() {
-        if(mProjectsNewsList != null) {
-            return mProjectsNewsList.size();
+        if(mProjectsNewsFilteredList != null) {
+//            return mProjectsNewsList.size();
+            return mProjectsNewsFilteredList.size();
         }
         return 0;
     }
 
     public void setProjectsNewsList(List<ProjectsNews> projectsNewsList){
         mProjectsNewsList = projectsNewsList;
+        mProjectsNewsFilteredList = mProjectsNewsList;
         notifyDataSetChanged();
     }
 
@@ -168,5 +177,40 @@ public class ProjectsNewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             }
         }
         return null;
+    }
+
+    @Override
+    public Filter getFilter() {
+
+
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String key = charSequence.toString();
+                if(key.isEmpty()){
+                    mProjectsNewsFilteredList = mProjectsNewsList;
+                }
+                else{
+                    List<ProjectsNews> lstFiltered = new ArrayList<>();
+                    for (ProjectsNews row : mProjectsNewsList){
+                        if(row.getTitle().toLowerCase().startsWith(key.toLowerCase())){
+                            lstFiltered.add(row);
+                        }
+                    }
+
+                    mProjectsNewsFilteredList = lstFiltered;
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = mProjectsNewsFilteredList;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                mProjectsNewsFilteredList = (List<ProjectsNews>)filterResults.values;
+                notifyDataSetChanged();
+            }
+        };
     }
 }

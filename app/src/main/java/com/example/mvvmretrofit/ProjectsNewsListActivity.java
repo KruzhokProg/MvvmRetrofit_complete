@@ -3,8 +3,11 @@ package com.example.mvvmretrofit;
 import android.content.Intent;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Observer;
@@ -38,6 +41,7 @@ public class ProjectsNewsListActivity extends BaseActivity implements OnProjects
     private ProjectsNewsListViewModel mProjectsNewsListViewModel;
     private RecyclerView rv;
     private ProjectsNewsAdapter mAdapter;
+    private EditText etSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,7 @@ public class ProjectsNewsListActivity extends BaseActivity implements OnProjects
         setContentView(R.layout.activity_projects_news_list);
 
         rv = findViewById(R.id.rv_projects_news);
+        etSearch = findViewById(R.id.et_search);
         mProjectsNewsListViewModel = new ViewModelProvider(this).get(ProjectsNewsListViewModel.class);
 
         initRecyclerView();
@@ -57,6 +62,24 @@ public class ProjectsNewsListActivity extends BaseActivity implements OnProjects
 ////                testRetrofitRequestList();
 //            }
 //        });
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mAdapter.getFilter().filter(charSequence);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
     }
 
     private void subscribeObservers(){
